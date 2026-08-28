@@ -547,7 +547,6 @@ VanGFX/
 
 | Item | Status |
 |---|---|
-| **EXR output** | Encoder not yet implemented. `CaptureFormat::EXR` falls back to `.raw` with a `LogLevel::Warning`. tinyexr integration is deferred. |
 | **D3D12 `ResourceBarrier` intercept** | Setting `barriers[i].intercept = true` suppresses the barrier. The library does not guard against correctness consequences — the caller owns the hazard. |
 | **Windows only** | D3D is a Windows API. Linux / macOS are not supported. |
 
