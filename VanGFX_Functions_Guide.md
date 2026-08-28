@@ -1,46 +1,52 @@
-# VanGFX Functions Guide
+<div align="center">
 
-Full API reference, architecture notes, and worked examples for VanGFX.
+<img src="vangfx-logo.png" width="600" alt="VanGFX"/>
 
----
+<p><em>API Reference · Architecture Notes · Worked Examples</em></p>
 
-## Table of Contents
+<a href="#">
+<img src="https://readme-typing-svg.demolab.com/?lines=Full+API+reference+for+every+backend.;ContextBuilder.+ShaderBuilder.+Effect+API.;GBuffer+capture+with+EXR%2C+PNG%2C+DDS%2C+Raw.;D3D12+PSO+intercept.+Root+binding+snapshots.;std%3A%3Aexpected+all+the+way+down.&font=Fira%20Code&center=true&width=700&height=45&color=107C10&vCenter=true&size=20&pause=1800"/>
+</a>
 
-- [ContextBuilder](#contextbuilder)
-- [Context](#context)
-- [FrameContext](#framecontext)
-- [ShaderBuilder](#shaderbuilder)
-- [Effect API](#effect-api)
-  - [replace_ps / replace_vs / replace_effect](#replace_ps--replace_vs--replace_effect)
-  - [inject_ps_post / inject_ps_pre](#inject_ps_post--inject_ps_pre)
-  - [ScopedShaderReplace](#scopedshaderreplace)
-  - [ScopedInjection](#scopedinjection)
-  - [ReplaceFilter](#replacefilter)
-  - [ReplaceOptions](#replaceoptions)
-- [Uniforms](#uniforms)
-- [CaptureSession](#capturesession)
-- [GBufferCapture](#gbuffercapture)
-- [D3D12 Extensions](#d3d12-extensions)
-  - [PSOCreateEvent](#psocreateevent)
-  - [CommandListEvent](#commandlistevent)
-  - [ResourceBarrier](#resourcebarrier)
-  - [DescriptorHeap & RootBinding](#descriptorhea--rootbinding)
-- [Event Structs](#event-structs)
-  - [DrawEvent](#drawevent)
-  - [RenderTargetEvent](#rendertargetevent)
-  - [PresentEvent](#presentevent)
-  - [ResourceEvent](#resourceevent)
-  - [StateChangeEvent](#statechangeevent)
-  - [QueryEvent](#queryevent)
-- [Error Handling](#error-handling)
-- [Handle Types](#handle-types)
-- [Compat Layer](#compat-layer)
+<br/>
 
----
+[![License: MIT](https://img.shields.io/badge/License-MIT-107C10?style=for-the-badge&labelColor=000000)](LICENSE)
+[![C++20](https://img.shields.io/badge/C%2B%2B-20-107C10?style=for-the-badge&labelColor=000000&logo=cplusplus&logoColor=107C10)](https://en.cppreference.com/w/cpp/20)
+[![Windows](https://img.shields.io/badge/Windows-x86%20%7C%20x64-107C10?style=for-the-badge&labelColor=000000&logo=windows&logoColor=107C10)](libs/)
+[![TeamVanilla](https://img.shields.io/badge/Team-TeamVanilla-107C10?style=for-the-badge&labelColor=000000)](https://www.teamvanilla.org/)
 
-## ContextBuilder
+<br/>
 
-Fluent builder for constructing a `Context`. Call `.build()` exactly once at startup.
+[![DirectX 9](https://img.shields.io/badge/DirectX-9-107C10?style=flat-square&labelColor=000000)](#)
+[![DirectX 11](https://img.shields.io/badge/DirectX-11-107C10?style=flat-square&labelColor=000000)](#)
+[![DirectX 12](https://img.shields.io/badge/DirectX-12-107C10?style=flat-square&labelColor=000000)](#)
+[![HLSL](https://img.shields.io/badge/HLSL-SM%203.0%E2%80%936.x-107C10?style=flat-square&labelColor=000000)](#)
+[![DXBC](https://img.shields.io/badge/Bytecode-DXBC%20%7C%20DXIL-107C10?style=flat-square&labelColor=000000)](#)
+[![Exception-free](https://img.shields.io/badge/Exception--free-std%3A%3Aexpected-107C10?style=flat-square&labelColor=000000)](#)
+
+</div>
+
+<img width="100%" src="https://capsule-render.vercel.app/api?type=rect&color=0:000000,50:006400,100:000000&height=3"/>
+
+<div align="center">
+
+### 📑 Contents
+
+[ContextBuilder](#-contextbuilder) · [Context](#-context) · [FrameContext](#-framecontext) · [ShaderBuilder](#-shaderbuilder)
+
+[Effect API](#-effect-api) · [Uniforms](#-uniforms) · [CaptureSession](#-capturesession) · [GBufferCapture](#-gbuffercapture)
+
+[D3D12 Extensions](#-d3d12-extensions) · [Event Structs](#-event-structs) · [Error Handling](#-error-handling)
+
+[Handle Types](#-handle-types) · [Compat Layer](#-compat-layer)
+
+</div>
+
+<img width="100%" src="https://capsule-render.vercel.app/api?type=rect&color=0:000000,50:006400,100:000000&height=3"/>
+
+## 🏗️ ContextBuilder
+
+Fluent builder for constructing a `Context`. Call `.build()` exactly once at startup. The returned `Context` owns all vtable patches — they are removed cleanly when the object is destroyed.
 
 ```cpp
 #include <vangfx/vangfx.hpp>
@@ -62,33 +68,33 @@ if (!ctx) {
 }
 ```
 
-**`BackendKind::Auto` detection order:** D3D12 → D3D11 → D3D9 (first loaded DLL wins).
+**`BackendKind::Auto` detection order:** D3D12 → D3D11 → D3D9 (first loaded DLL wins). Specify a backend explicitly to override.
 
----
+<img width="100%" src="https://capsule-render.vercel.app/api?type=rect&color=0:000000,50:006400,100:000000&height=3"/>
 
-## Context
+## 🌐 Context
 
-The root object returned by `ContextBuilder::build()`. Owns all vtable patches — patches are removed when the `Context` is destroyed.
+The root object returned by `ContextBuilder::build()`. Owns all vtable patches.
 
 ### Callback registration
 
 ```cpp
-ctx->on_draw(fn);            // DrawCallback
-ctx->on_render_target(fn);   // RenderTargetCallback
-ctx->on_present(fn);         // PresentCallback
-ctx->on_resource(fn);        // ResourceCallback
-ctx->on_state_change(fn);    // StateCallback
-ctx->on_query(fn);           // QueryCallback
-ctx->on_device_lost(fn);     // void()
-ctx->on_device_reset(fn);    // void(FrameContext&)
+ctx->on_draw(fn);             // DrawCallback
+ctx->on_render_target(fn);    // RenderTargetCallback
+ctx->on_present(fn);          // PresentCallback
+ctx->on_resource(fn);         // ResourceCallback
+ctx->on_state_change(fn);     // StateCallback
+ctx->on_query(fn);            // QueryCallback
+ctx->on_device_lost(fn);      // void()
+ctx->on_device_reset(fn);     // void(FrameContext&)
 
 // D3D12 only
-ctx->on_command_list(fn);    // CommandListCallback
-ctx->on_pso_create(fn);      // PSOCreateCallback
+ctx->on_command_list(fn);     // CommandListCallback
+ctx->on_pso_create(fn);       // PSOCreateCallback
 ctx->on_resource_barrier(fn); // ResourceBarrierCallback
 ```
 
-### Shader / effect management
+### Shader & effect management
 
 ```cpp
 auto shader = ctx->compile_shader(builder);
@@ -109,19 +115,19 @@ bool active = ctx->capture_active();
 ### Backend queries
 
 ```cpp
-vangfx::BackendKind bk  = ctx->backend();
-uint32_t d9ver           = ctx->d3d9_ver();
-uint32_t d11fl           = ctx->d3d11_feature_level();  // e.g. 0xB100
-uint32_t d12sm           = ctx->d3d12_shader_model();   // e.g. 66
-uint32_t d12rt           = ctx->d3d12_raytracing_tier();
-uint32_t d12ms           = ctx->d3d12_mesh_shader_tier();
+vangfx::BackendKind bk = ctx->backend();
+uint32_t d9ver          = ctx->d3d9_ver();
+uint32_t d11fl          = ctx->d3d11_feature_level();  // e.g. 0xB100 = FL 11.1
+uint32_t d12sm          = ctx->d3d12_shader_model();   // e.g. 66 = SM 6.6
+uint32_t d12rt          = ctx->d3d12_raytracing_tier();
+uint32_t d12ms          = ctx->d3d12_mesh_shader_tier();
 ```
 
----
+<img width="100%" src="https://capsule-render.vercel.app/api?type=rect&color=0:000000,50:006400,100:000000&height=3"/>
 
-## FrameContext
+## 🖼️ FrameContext
 
-Passed to every callback. Exposes per-frame state. Never stored across frames.
+Passed to every callback. Exposes per-frame state. **Never store across frames.**
 
 ```cpp
 frame.backend();           // BackendKind
@@ -149,15 +155,15 @@ frame.update_constant_buffer(cb, ptr, size);
 
 // CPU readback
 auto rb = frame.readback(rt_handle);  // Result<ReadbackResult>
-// rb->pixels   — std::span<const uint8_t>
-// rb->row_pitch — bytes per scanline
+// rb->pixels    — std::span<const uint8_t>
+// rb->row_pitch — bytes per scanline (may include padding)
 ```
 
----
+<img width="100%" src="https://capsule-render.vercel.app/api?type=rect&color=0:000000,50:006400,100:000000&height=3"/>
 
-## ShaderBuilder
+## 🔧 ShaderBuilder
 
-Compiles HLSL or wraps pre-compiled bytecode.
+Compiles HLSL or wraps pre-compiled bytecode. Routes to `d3dcompiler_47.dll` for D3D9/D3D11 or `dxcompiler.dll` + `dxil.dll` for D3D12 SM 6.x — both runtime-loaded, no static link required.
 
 ```cpp
 // HLSL from string
@@ -169,9 +175,6 @@ auto s = vangfx::ShaderBuilder{}
     .include_dir("shaders/")
     .optimization(3)              // 0 = off, 1–3 = O1–O3
     .debug_info(false)
-    .use_dxc(false)               // force DXC for SM 6.x
-    .validate_dxil(true)          // DXIL validation pass (D3D12 only)
-    .root_signature_define("RS")  // -rootsig-define forwarded to DXC
     .build(*ctx);                 // Result<Shader>
 
 // HLSL from file
@@ -181,8 +184,17 @@ auto s2 = vangfx::ShaderBuilder{}
     .profile("vs_5_0")
     .build(*ctx);
 
-// Pre-compiled blob
-auto s3 = vangfx::ShaderBuilder{}
+// D3D12 — SM 6.x via DXC
+auto ps6 = vangfx::ShaderBuilder{}
+    .source(hlsl_text)
+    .profile("ps_6_5")
+    .use_dxc(true)
+    .validate_dxil(true)
+    .root_signature_define("RS_MAIN")
+    .build(*ctx);
+
+// Pre-compiled bytecode blob
+auto prebuilt = vangfx::ShaderBuilder{}
     .bytecode(blob_ptr, blob_size)
     .stage(vangfx::ShaderStage::Pixel)
     .build(*ctx);
@@ -192,14 +204,9 @@ if (!s) {
 }
 ```
 
-**Compiler selection:**
-- D3D9 / D3D11 → `d3dcompiler_47.dll` (runtime-loaded via `LoadLibrary`)
-- D3D12, `ps_6_*` / `vs_6_*` etc. → `dxcompiler.dll` + `dxil.dll` (runtime-loaded)
-- Both DLLs must be present on the system; VanGFX does not ship them.
+<img width="100%" src="https://capsule-render.vercel.app/api?type=rect&color=0:000000,50:006400,100:000000&height=3"/>
 
----
-
-## Effect API
+## ✏️ Effect API
 
 ### `replace_ps` / `replace_vs` / `replace_effect`
 
@@ -224,25 +231,26 @@ vangfx::InjectionHandle h = vangfx::inject_ps_pre(*ctx, snippet);
 vangfx::remove_injection(*ctx, h);
 ```
 
-**`inject_ps_post` snippet environment:**
+**Variables available inside injected snippets:**
 
-| Symbol | Type | Description |
+| Variable | Type | Available in |
 |---|---|---|
-| `color` | `float4` | Pixel output — modify in-place |
-| `tex` | `Texture2D` | Game's bound texture (slot t0) |
-| `samp` | `SamplerState` | Game's bound sampler (slot s0) |
-| `vangfx_uv` | `float2` | Screen UV [0,1]² |
-| `vangfx_time` | `float` | Seconds since context creation |
-| `vangfx_delta` | `float` | Seconds since last frame |
-| `vangfx_resolution` | `float2` | Back-buffer width × height |
-| `vangfx_float4[8]` | `float4[]` | User uniform slots 0–7 |
+| `color` | `float4` | `inject_ps_post` — modify in-place |
+| `tex` | `Texture2D` | Both — game's bound texture (slot t0) |
+| `samp` | `SamplerState` | Both — game's bound sampler (slot s0) |
+| `vangfx_uv` | `float2` | Both — screen UV [0,1]² |
+| `vangfx_time` | `float` | Both — seconds since context creation |
+| `vangfx_delta` | `float` | Both — seconds since last frame |
+| `vangfx_resolution` | `float2` | Both — back-buffer width × height |
+| `vangfx_float4[8]` | `float4[]` | Both — user uniform slots 0–7 |
 
-**`inject_ps_pre` snippet environment:** same except `color` is not available; modify `vangfx_uv` to warp UV before sampling.
+> **`inject_ps_pre`** — same environment except `color` is not available. Modify `vangfx_uv` to warp UV coordinates before the game's texture sample.
 
 ### `ScopedShaderReplace`
 
+RAII wrapper — replacement is removed automatically when the guard goes out of scope or `reset()` is called.
+
 ```cpp
-// RAII — replacement removed when guard goes out of scope or reset() is called.
 auto g = vangfx::ScopedShaderReplace::ps(*ctx, hlsl, filter);
 auto g = vangfx::ScopedShaderReplace::vs(*ctx, hlsl, filter);
 auto g = vangfx::ScopedShaderReplace::effect(*ctx, vs_hlsl, ps_hlsl, filter);
@@ -263,12 +271,12 @@ g.reset();
 
 ```cpp
 vangfx::ReplaceFilter f;
-f.min_verts   = 1000;                    // minimum vertex count
-f.max_verts   = 0;                       // 0 = no upper limit
-f.rt_width    = 1920;                    // exact RT width match (0 = any)
-f.rt_height   = 1080;                    // exact RT height match (0 = any)
-f.predicate   = [](const vangfx::FrameContext& frame,
-                   const vangfx::DrawEvent& ev) -> bool {
+f.min_verts = 1000;     // minimum vertex count (0 = any)
+f.max_verts = 0;        // maximum vertex count (0 = no limit)
+f.rt_width  = 1920;     // exact RT width match  (0 = any)
+f.rt_height = 1080;     // exact RT height match (0 = any)
+f.predicate = [](const vangfx::FrameContext& frame,
+                 const vangfx::DrawEvent& ev) -> bool {
     return ev.instance_count > 1;
 };
 ```
@@ -278,60 +286,59 @@ f.predicate   = [](const vangfx::FrameContext& frame,
 ```cpp
 struct ReplaceOptions {
     std::string entry   = "main";
-    std::string profile = "";       // "" = auto-select for backend + stage
+    std::string profile = "";     // "" = auto-select for backend + stage
     bool        use_dxc = false;
     bool        debug   = false;
 };
 ```
 
----
+<img width="100%" src="https://capsule-render.vercel.app/api?type=rect&color=0:000000,50:006400,100:000000&height=3"/>
 
-## Uniforms
+## 🎛️ Uniforms
 
-Drive live values from C++ into every shader installed via the Effect API.
+Drive live values from C++ into every shader installed via the Effect API. One `Uniforms` instance per context, shared across all active effects.
 
 ```cpp
-vangfx::Uniforms u(*ctx);  // one instance per context, shared across all effects
+vangfx::Uniforms u(*ctx);
 
-u.set(0, 0.75f);                        // float → vangfx_float4[0].x
-u.set(1, 1.0f, 0.5f, 0.2f);            // xyz → vangfx_float4[1].xyz
-u.set(2, vangfx::Float4{r, g, b, a});  // full float4
+u.set(0, 0.75f);                        // float  → vangfx_float4[0].x
+u.set(1, 1.0f, 0.5f, 0.2f);            // xyz    → vangfx_float4[1].xyz
+u.set(2, vangfx::Float4{r, g, b, a});  // float4 → vangfx_float4[2]
 
 vangfx::Float4 v = u.get(0);           // CPU-side readback (no GPU transfer)
 u.flush();                              // force immediate GPU upload
 u.reset();                              // zero all 8 slots
 ```
 
-**HLSL — always available in replacement / injection shaders:**
+**HLSL — always available in replacement and injection shaders:**
 
 ```hlsl
 cbuffer vangfx_params : register(b0) {
-    float4 vangfx_float4[8];
-    float  vangfx_time;
-    float  vangfx_delta;
-    float2 vangfx_resolution;
+    float4 vangfx_float4[8];   // slots 0–7 driven by Uniforms::set()
+    float  vangfx_time;        // seconds since context creation
+    float  vangfx_delta;       // seconds since last frame
+    float2 vangfx_resolution;  // back-buffer width × height
 };
 ```
 
-Slot indices 0–7 correspond to `vangfx_float4[0]`–`vangfx_float4[7]`.
+<img width="100%" src="https://capsule-render.vercel.app/api?type=rect&color=0:000000,50:006400,100:000000&height=3"/>
 
----
-
-## CaptureSession
+## 📷 CaptureSession
 
 ```cpp
 vangfx::CaptureConfig cfg;
 cfg.max_frames    = 5;
 cfg.cpu_readback  = true;
 cfg.output_dir    = "captures/";
-cfg.output_format = vangfx::CaptureFormat::PNG;  // PNG | EXR* | DDS | Raw
+cfg.output_format = vangfx::CaptureFormat::PNG;  // PNG | EXR | DDS | Raw
 
 cfg.capture_layer(vangfx::GBufferLayerKind::Albedo)
    .capture_layer(vangfx::GBufferLayerKind::Normal)
    .capture_layer(vangfx::GBufferLayerKind::Depth);
 
 cfg.on_frame = [](const vangfx::GBufferCapture& cap) {
-    for (auto& layer : cap.layers) {
+    for (uint32_t i = 0; i < cap.layer_count; ++i) {
+        const auto& layer = cap.layers[i];
         printf("layer %d: %ux%u  %zu bytes\n",
             (int)layer.kind, layer.width, layer.height,
             layer.pixels.size_bytes());
@@ -339,22 +346,32 @@ cfg.on_frame = [](const vangfx::GBufferCapture& cap) {
 };
 
 auto session = vangfx::CaptureSession::begin(*ctx, cfg).value();
-// RAII: destructor calls stop_capture()
+// RAII: destructor calls stop_capture() automatically
 
-session.stop();  // explicit stop
+session.stop();  // explicit early stop
 ```
 
-\* EXR output falls back to Raw with a logged warning — tinyexr integration is deferred.
+### Output formats
 
----
+| Format | Extension | Notes |
+|---|---|---|
+| `PNG` | `.png` | LDR lossless via WIC. 8-bit or 16-bit grey depending on `SurfaceFormat`. |
+| `EXR` | `.exr` | HDR lossless via [tinyexr](https://github.com/syoyo/tinyexr). All channels stored as HALF with PIZ compression. R11G11B10F, D24S8, and D32FS8 are unpacked to float before encoding. |
+| `DDS` | `.dds` | Raw DDS container — preserves compressed and HDR formats exactly as captured. |
+| `Raw` | `.raw` | Uncontained byte dump of the readback buffer. Row pitch may include padding. |
 
-## GBufferCapture
+<img width="100%" src="https://capsule-render.vercel.app/api?type=rect&color=0:000000,50:006400,100:000000&height=3"/>
+
+## 🗂️ GBufferCapture
 
 ```cpp
 const vangfx::GBufferCapture& cap;
 
-cap.frame_index;    // uint64_t
-cap.layers;         // std::vector<GBufferLayer>
+cap.frame_index;   // uint64_t — Present counter at capture time
+cap.width;         // uint32_t — backbuffer width
+cap.height;        // uint32_t — backbuffer height
+cap.layer_count;   // uint32_t — number of resolved layers
+cap.layers[];      // GBufferLayer[kMaxLayers]
 
 // Find a specific layer
 const vangfx::GBufferLayer* albedo = cap.find(vangfx::GBufferLayerKind::Albedo);
@@ -367,34 +384,36 @@ if (albedo && albedo->available) {
 }
 ```
 
+### Layer reference
+
 | `GBufferLayerKind` | Typical D3D format | Description |
 |---|---|---|
 | `Albedo` | R8G8B8A8_UNORM | Base colour at backbuffer resolution |
 | `Normal` | R16G16_SNORM / R16G16B16A16_SNORM | World- or view-space normals |
-| `Depth` | R32_FLOAT | Linearised scene depth |
+| `Depth` | R32_FLOAT | Linearised scene depth (0 = near, 1 = far) |
 | `DepthRaw` | D24_UNORM_S8 / D32_FLOAT | Raw hardware depth-stencil |
 | `Specular` | R8G8B8A8_UNORM | Roughness / metallic pack |
 | `Emissive` | R16G16B16A16_FLOAT | Glow / HDR emission |
 | `Motion` | R16G16_FLOAT | Screen-space motion vectors |
-| `AmbientOcclusion` | R8_UNORM | SSAO / baked AO (often at reduced res) |
+| `AmbientOcclusion` | R8_UNORM | SSAO / baked AO (often at reduced resolution) |
 | `Velocity` | R16G16_FLOAT | Per-pixel velocity for TAA |
 | `Backbuffer` | — | Final resolved back-buffer |
 
----
+<img width="100%" src="https://capsule-render.vercel.app/api?type=rect&color=0:000000,50:006400,100:000000&height=3"/>
 
-## D3D12 Extensions
+## ⚙️ D3D12 Extensions
 
 ### PSOCreateEvent
 
-Fired by `on_pso_create` before the PSO reaches the driver. Assign `.data` / `.size` on any `ShaderBytecodeView` field to redirect the blob — it must remain valid until `CreateGraphicsPipelineState` / `CreateComputePipelineState` returns.
+Fired by `on_pso_create` before the PSO reaches the driver. Assign `.data` / `.size` on any `ShaderBytecodeView` field to redirect the blob — the pointer must remain valid until `CreateGraphicsPipelineState` / `CreateComputePipelineState` returns.
 
 ```cpp
 ctx->on_pso_create([](vangfx::FrameContext&, vangfx::d3d12::PSOCreateEvent& ev) {
-    // ev.kind                — PSOKind::Graphics | Compute | MeshShader
-    // ev.vs, ev.ps, ev.gs    — ShaderBytecodeView {data, size}
-    // ev.hs, ev.ds, ev.cs    — ShaderBytecodeView
-    // ev.root_signature      — RootSignatureHandle
-    // ev.input_layout[]      — InputLayoutElement array
+    // ev.kind             — PSOKind::Graphics | Compute | MeshShader
+    // ev.vs, ev.ps, ev.gs — ShaderBytecodeView { data, size }
+    // ev.hs, ev.ds, ev.cs — ShaderBytecodeView
+    // ev.root_signature   — RootSignatureHandle
+    // ev.input_layout[]   — InputLayoutElement array
 
     if (!ev.ps.empty()) {
         ev.ps.data = replacement_dxil_ptr;
@@ -434,7 +453,7 @@ ctx->on_resource_barrier([](vangfx::FrameContext& f,
             // b.uav.resource
             break;
         }
-        // b.intercept = true → suppress this barrier (caller owns hazard)
+        // b.intercept = true → suppress this barrier (caller owns the hazard)
     }
 });
 ```
@@ -446,38 +465,38 @@ The descriptor heap registry tracks all `ID3D12DescriptorHeap` and `ID3D12RootSi
 ```cpp
 ctx->on_draw([](vangfx::FrameContext& f, vangfx::DrawEvent& ev) {
     for (auto& rb : ev.root_bindings) {
-        // rb.root_index     — root parameter slot
-        // rb.type           — RootBindingType::CBV|SRV|UAV|Table|Constants
-        // rb.gpu_address    — GPU VA (CBV / SRV / UAV direct)
-        // rb.heap           — DescriptorHeapHandle (Table)
-        // rb.heap_offset    — index into the heap (Table)
+        // rb.root_index  — root parameter slot
+        // rb.type        — RootBindingType::CBV|SRV|UAV|Table|Constants
+        // rb.gpu_address — GPU VA (CBV / SRV / UAV direct)
+        // rb.heap        — DescriptorHeapHandle (Table)
+        // rb.heap_offset — index into the heap (Table)
     }
 });
 ```
 
----
+<img width="100%" src="https://capsule-render.vercel.app/api?type=rect&color=0:000000,50:006400,100:000000&height=3"/>
 
-## Event Structs
+## 📡 Event Structs
 
 ### DrawEvent
 
 ```cpp
 struct DrawEvent {
-    DrawType      type;             // Draw | DrawIndexed | DrawInstanced |
-                                    //   DrawIndexedInstanced | DrawAuto |
-                                    //   DrawIndirect | DrawIndexedIndirect |
-                                    //   Dispatch | DispatchIndirect
-    uint32_t      vertex_count;
-    uint32_t      index_count;
-    uint32_t      instance_count;
-    uint32_t      dispatch_x, dispatch_y, dispatch_z;  // Dispatch only
+    DrawType type;              // Draw | DrawIndexed | DrawInstanced |
+                                //   DrawIndexedInstanced | DrawAuto |
+                                //   DrawIndirect | DrawIndexedIndirect |
+                                //   Dispatch | DispatchIndirect
+    uint32_t vertex_count;
+    uint32_t index_count;
+    uint32_t instance_count;
+    uint32_t dispatch_x, dispatch_y, dispatch_z;  // Dispatch only
 
     // D3D12 only
-    CommandListHandle              command_list;
-    PSOHandle                      pso;
-    std::span<const RootBinding>   root_bindings;
-    D3D12VertexBufferBinding       d3d12_vb;
-    D3D12IndexBufferBinding        d3d12_ib;
+    CommandListHandle            command_list;
+    PSOHandle                    pso;
+    std::span<const RootBinding> root_bindings;
+    D3D12VertexBufferBinding     d3d12_vb;
+    D3D12IndexBufferBinding      d3d12_ib;
 
     bool intercept;  // set true to suppress the draw
 };
@@ -515,11 +534,11 @@ struct PresentEvent {
 
 ```cpp
 struct ResourceEvent {
-    ResourceAction action;   // Create | Update | Destroy
-    ResourceKind   kind;     // Texture | RenderTarget | DepthBuffer |
-                             //   VertexBuffer | IndexBuffer | ConstantBuffer |
-                             //   StructuredBuffer | UAV | RawBuffer | AccelStructure
-    uint64_t       id;       // stable handle id
+    ResourceAction action;  // Create | Update | Destroy
+    ResourceKind   kind;    // Texture | RenderTarget | DepthBuffer |
+                            //   VertexBuffer | IndexBuffer | ConstantBuffer |
+                            //   StructuredBuffer | UAV | RawBuffer | AccelStructure
+    uint64_t       id;      // stable handle id
 
     // D3D12 — populated on Create
     D3D12ResourceDesc d3d12;
@@ -551,37 +570,51 @@ struct QueryEvent {
 };
 ```
 
----
+<img width="100%" src="https://capsule-render.vercel.app/api?type=rect&color=0:000000,50:006400,100:000000&height=3"/>
 
-## Error Handling
+## ❌ Error Handling
 
-All VanGFX functions return `vangfx::Result<T>` (`std::expected<T, VanGFXError>`).
+Every VanGFX function returns `Result<T>` — a `std::expected<T, VanGFXError>`. No exceptions anywhere in the library.
 
 ```cpp
 struct VanGFXError {
-    ShaderError  code;
-    std::string  message;
+    ShaderError code;
+    std::string message;
 };
+
+// Inline check
+auto result = vangfx::ContextBuilder{}.build();
+if (!result) {
+    printf("error: %s\n", result.error().message.c_str());
+}
+
+// Monadic chaining (C++23)
+vangfx::ShaderBuilder{}.source(hlsl).profile("ps_5_0").build(*ctx)
+    .and_then([&](vangfx::Shader s) -> vangfx::Result<vangfx::Effect> {
+        return ctx->link_effect(vs, s);
+    });
 ```
 
 | Code | Meaning |
 |---|---|
-| `FileNotFound` | `source_file()` path unreadable |
-| `CompileFailed` | Compiler returned errors; `message` contains the full diagnostic |
+| `FileNotFound` | `source_file()` path does not exist or is unreadable |
+| `CompileFailed` | HLSL compilation failed; `message` contains the full diagnostic |
 | `LinkFailed` | Invalid stage combination for link |
 | `Unsupported` | Feature unavailable on the active backend |
-| `DeviceLost` | D3D device lost mid-operation |
+| `DeviceLost` | D3D device lost during the operation |
 | `InvalidFormat` | Surface format rejected by the backend |
 | `InvalidHandle` | Null or already-destroyed handle |
 | `ResourceLost` | D3D resource released during readback |
 | `OutOfMemory` | GPU or CPU allocator exhausted |
-| `CaptureNotActive` | `latest_capture()` with no active session |
+| `CaptureNotActive` | `latest_capture()` called with no active session |
 | `ReadbackFailed` | Fence timeout or resource not in a readable state |
 | `NotInitialized` | Operation attempted before `ContextBuilder::build()` |
 
----
+<img width="100%" src="https://capsule-render.vercel.app/api?type=rect&color=0:000000,50:006400,100:000000&height=3"/>
 
-## Handle Types
+## 🔖 Handle Types
+
+All handles are non-owning `uint64_t` identifiers. An id of `0` means null / not tracked. Owned handles (`ShaderHandle`, `EffectHandle`) must be destroyed via `ctx->destroy()`.
 
 | Type | Description |
 |---|---|
@@ -593,8 +626,8 @@ struct VanGFXError {
 | `ConstantBufferHandle` | Non-owning id for a tracked constant buffer |
 | `StructuredBufferHandle` | Non-owning id for a tracked structured buffer |
 | `UAVHandle` | Non-owning id for a tracked UAV |
-| `ShaderHandle` | Owned by `Context::destroy(ShaderHandle)` |
-| `EffectHandle` | Owned by `Context::destroy(EffectHandle)` |
+| `ShaderHandle` | **Owned** — release via `ctx->destroy(ShaderHandle)` |
+| `EffectHandle` | **Owned** — release via `ctx->destroy(EffectHandle)` |
 | `d3d12::CommandListHandle` | Non-owning id (stable across Reset) |
 | `d3d12::CommandQueueHandle` | Non-owning id |
 | `d3d12::FenceHandle` | Non-owning id |
@@ -602,42 +635,44 @@ struct VanGFXError {
 | `d3d12::DescriptorHeapHandle` | Non-owning id |
 | `d3d12::RootSignatureHandle` | Non-owning id |
 
-All ids are `uint64_t` under the hood. An id of `0` means null / not tracked.
+<img width="100%" src="https://capsule-render.vercel.app/api?type=rect&color=0:000000,50:006400,100:000000&height=3"/>
 
----
+## 🔩 Compat Layer
 
-## Compat Layer
-
-`include/vangfx/compat/` exposes the internal vtable-patching primitives. Most mod authors will not need these directly — they are required by the VanGFX runtime itself, and are made available for mods that need raw COM or vtable access.
+The compat headers expose the internal vtable-patching primitives used by the VanGFX runtime. Most mod authors will not need these directly. They are available for advanced mods that require raw COM or vtable access.
 
 ### `vtable.hpp` — `ScopedPatch<Fn>`
 
-RAII vtable slot patcher. Lifts page protection, writes the replacement pointer, restores original on destruction.
+RAII vtable slot patcher. Lifts page protection via `VirtualProtect`, writes the replacement pointer, and restores the original on destruction.
 
 ```cpp
 #include <vangfx/compat/vtable.hpp>
 
 auto patch = vangfx::vtable::ScopedPatch<decltype(&IDXGISwapChain::Present)>(
-    vtable_ptr, slot_index, &my_present_hook);
+    swap_chain, slot_index, &my_present_hook);
 // original restored when patch goes out of scope
 ```
 
 ### `com.hpp` — COM helpers
 
-Utility wrappers for `QueryInterface`, `AddRef`/`Release` counting, and safe COM pointer casts.
+Lightweight alternatives to ATL/WRL with no external dependencies. Provides `Ptr<T>` (RAII COM smart pointer), `qi<T>()` (safe `QueryInterface`), `is_same_object()`, `hr_ok()`, and `ScopedKeepAlive`.
 
 ### `d3d9_slots.hpp` / `d3d11_slots.hpp` / `d3d12_slots.hpp`
 
-Verified vtable slot constants for every hooked method. All values are `inline constexpr uint32_t`. Example:
+Verified `inline constexpr uint32_t` vtable slot constants for every hooked method, derived from Windows SDK 10.0.20348.0 IDL declaration order.
 
 ```cpp
 #include <vangfx/compat/d3d12_slots.hpp>
 
-// vangfx::d3d12_slots::kDrawInstanced == 12
-// vangfx::d3d12_slots::kCreateGraphicsPipelineState == 24
-// vangfx::d3d12_slots::kExecuteCommandLists == 10 (on ID3D12CommandQueue)
+// vangfx::d3d12_slots::command_list::DrawInstanced      == 12
+// vangfx::d3d12_slots::device::CreateGraphicsPipelineState == 24
+// vangfx::d3d12_slots::command_queue::ExecuteCommandLists  == 10
 ```
 
----
+<img width="100%" src="https://capsule-render.vercel.app/api?type=waving&color=0:006400,100:000000&height=80&section=footer"/>
 
-*Built and maintained by [TsyVM](https://github.com/TsyVM) · [TeamVanilla](https://www.teamvanilla.org/)*
+<div align="center">
+
+<sub>Built and maintained by <a href="https://github.com/TsyVM">TsyVM</a> · <a href="https://www.teamvanilla.org/">TeamVanilla</a></sub>
+
+</div>
