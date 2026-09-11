@@ -93,6 +93,8 @@ VanGFX is distributed as **precompiled static libraries with public API headers*
 - **`CaptureSession`** — RAII bounded capture; auto-stops after `max_frames`
 - **Heuristic RT classifier** — assigns Albedo / Normal / Depth / DepthRaw / Specular / Emissive / Motion / AO / Velocity / Backbuffer from format + resolution + slot index
 - **CPU readback** — D3D11 `CopyResource` path; D3D12 `CopyTextureRegion` + fence wait + barrier transitions
+- **Buffer readback** — vertex, index, constant, structured, raw and UAV buffers, by byte range. D3D12 maps CPU-visible heaps in place and copies out of default heaps; D3D11 stages and maps; D3D9 locks in place
+- **Draw → geometry (D3D12)** — `buffer_at()` resolves the GPU virtual address in a draw's vertex/index buffer view to the buffer and offset behind it, which is how you find out what a draw actually is
 - **File output** — PNG (WIC), DDS (hand-rolled header), Raw byte dump; per-frame `on_frame` callback
 
 **D3D12 Extensions**
@@ -172,11 +174,16 @@ target_link_libraries(my_mod PRIVATE VanGFX::vangfx)
 ```cpp
 #include <vangfx/vangfx.hpp>
 
-void setup() {
-    // Auto-detect the D3D backend, no proxy DLL, no manual setup.
+void setup(ID3D12Device* device, ID3D12CommandQueue* queue,
+           IDXGISwapChain* swapChain) {
+    // Auto-detect the D3D backend, no proxy DLL. The device and queue come from
+    // you: D3D11 and D3D12 keep no global to find them in.
     auto ctx = vangfx::ContextBuilder{}
         .backend(vangfx::BackendKind::Auto)
         .log_level(vangfx::LogLevel::Info)
+        .d3d12_device(device)
+        .d3d12_command_queue(queue)
+        .d3d12_swap_chain(swapChain)
         .build()
         .value();
 
@@ -187,7 +194,7 @@ void setup() {
         }
     });
 
-    // Replace the pixel shader — one line. Works on D3D9, D3D11, and D3D12.
+    // Replace the pixel shader — one line. D3D9 and D3D11.
     vangfx::replace_ps(*ctx, R"(
         float4 main(float2 uv : TEXCOORD) : SV_Target {
             float4 c = tex.Sample(samp, uv);
@@ -203,6 +210,15 @@ void setup() {
 }
 ```
 
+> **On D3D12, `replace_ps` and `inject_ps_post` do nothing.** They install an
+> effect by binding it per draw, which is a D3D9/D3D11 model; D3D12 has no
+> shader binding call, only immutable pipeline states. They compile the shader
+> and never install it, without reporting an error.
+>
+> The D3D12 route is `on_pso_create`, which hands you the pipeline state
+> description before it is created and honours any shader bytecode you swap into
+> it. See [D3D12 Extensions](#-d3d12-extensions).
+
 <img width="100%" src="https://capsule-render.vercel.app/api?type=rect&color=0:000000,50:006400,100:000000&height=3"/>
 
 ## 🎮 Context & Backends
@@ -216,6 +232,8 @@ auto ctx = vangfx::ContextBuilder{}
     .log_callback([](vangfx::LogLevel lvl, std::string_view msg) {
         printf("[vangfx] %s\n", std::string(msg).c_str());
     })
+    .d3d11_device(device)                 // required — see the table below
+    .d3d11_swap_chain(swapChain)          // required on D3D11
     .d3d12_min_shader_model(60)           // require SM 6.0+ — fail-fast if not met
     .auto_capture(true)                   // start GBuffer capture on first Present
     .build();
@@ -224,6 +242,18 @@ if (!ctx) {
     // ctx.error().message contains the full diagnostic
 }
 ```
+
+### What each backend needs
+
+VanGFX never goes looking for a device. Direct3D 9 had a global to find one in; D3D11 and D3D12 do not, and neither lets a device be asked which queues or swap chains were created from it. Supply them from wherever you already have them — your own hook, a proxy DLL, or the host that loaded you.
+
+| Backend | Required | Optional |
+|---|---|---|
+| D3D9  | `d3d9_device` | — |
+| D3D11 | `d3d11_device`, `d3d11_swap_chain` | — |
+| D3D12 | `d3d12_device`, `d3d12_command_queue` | `d3d12_swap_chain` — without it `on_present` never fires |
+
+`build()` returns `ShaderError::NotInitialized` with a message naming whichever one is missing.
 
 ### `BackendKind::Auto`
 
@@ -547,7 +577,12 @@ VanGFX/
 
 | Item | Status |
 |---|---|
+| **Effect API on D3D12 is not per-draw** | `replace_ps`, `replace_vs`, `replace_effect`, `inject_ps_post`, `inject_ps_pre` and the `Scoped*` guards work on D3D12, but they register a **substitution at PSO creation** rather than binding per draw — D3D12 has no call that binds a shader. So a `ReplaceFilter` selecting on vertex count or target size cannot be honoured, and a PSO built before the bind keeps its original shader. Bind during device creation to catch everything. |
+| **`buffer_at` is D3D12-only** | Resolving a GPU virtual address to a buffer needs addresses to resolve, and D3D9/D3D11 bind buffers as interface pointers. Those backends return an empty `BufferRef` — a fact about the API, not a gap. Buffer *readback by handle* works on all three. |
+| **D3D9 `D3DUSAGE_WRITEONLY` buffers cannot be read** | The flag lets the driver hold the memory where the CPU cannot usefully read it, so `readback` reports it rather than returning bytes that are not the contents. Most static geometry in a real game sets it. D3D9 has no constant/structured/raw/UAV buffer objects either, so only vertex and index buffers are ever registered. |
+| **EXR output** | Encoder not yet implemented. `CaptureFormat::EXR` falls back to `.raw` with a `LogLevel::Warning`. tinyexr integration is deferred. |
 | **D3D12 `ResourceBarrier` intercept** | Setting `barriers[i].intercept = true` suppresses the barrier. The library does not guard against correctness consequences — the caller owns the hazard. |
+| **D3D11 swap chain** | Must be supplied via `d3d11_swap_chain()`. DXGI can walk from a device up to its factory but not back down to the swap chains created from it. |
 | **Windows only** | D3D is a Windows API. Linux / macOS are not supported. |
 
 <img width="100%" src="https://capsule-render.vercel.app/api?type=rect&color=0:000000,50:006400,100:000000&height=3"/>
