@@ -1,0 +1,116 @@
+[
+  {
+    "name": "D3D12CoreCreateLayeredDevice",
+    "ordinal": 103,
+    "noname": false,
+    "mode": "forward"
+  },
+  {
+    "name": "D3D12CoreGetLayeredDeviceSize",
+    "ordinal": 104,
+    "noname": false,
+    "mode": "forward"
+  },
+  {
+    "name": "D3D12CoreRegisterLayers",
+    "ordinal": 105,
+    "noname": false,
+    "mode": "forward"
+  },
+  {
+    "name": "D3D12CreateDevice",
+    "ordinal": 101,
+    "noname": false,
+    "mode": "forward"
+  },
+  {
+    "name": "D3D12CreateRootSignatureDeserializer",
+    "ordinal": 106,
+    "noname": false,
+    "mode": "forward"
+  },
+  {
+    "name": "D3D12CreateVersionedRootSignatureDeserializer",
+    "ordinal": 107,
+    "noname": false,
+    "mode": "forward"
+  },
+  {
+    "name": "D3D12DeviceRemovedExtendedData",
+    "ordinal": 108,
+    "noname": false,
+    "mode": "forward"
+  },
+  {
+    "name": "D3D12EnableExperimentalFeatures",
+    "ordinal": 109,
+    "noname": false,
+    "mode": "forward"
+  },
+  {
+    "name": "D3D12GetDebugInterface",
+    "ordinal": 102,
+    "noname": false,
+    "mode": "forward"
+  },
+  {
+    "name": "D3D12GetInterface",
+    "ordinal": 110,
+    "noname": false,
+    "mode": "forward"
+  },
+  {
+    "name": "D3D12PIXEventsReplaceBlock",
+    "ordinal": 111,
+    "noname": false,
+    "mode": "forward"
+  },
+  {
+    "name": "D3D12PIXGetThreadInfo",
+    "ordinal": 112,
+    "noname": false,
+    "mode": "forward"
+  },
+  {
+    "name": "D3D12PIXNotifyWakeFromFenceSignal",
+    "ordinal": 113,
+    "noname": false,
+    "mode": "forward"
+  },
+  {
+    "name": "D3D12PIXReportCounter",
+    "ordinal": 114,
+    "noname": false,
+    "mode": "forward"
+  },
+  {
+    "name": "D3D12SerializeRootSignature",
+    "ordinal": 115,
+    "noname": false,
+    "mode": "forward"
+  },
+  {
+    "name": "D3D12SerializeVersionedRootSignature",
+    "ordinal": 116,
+    "noname": false,
+    "mode": "forward"
+  },
+  {
+    "name": "GetBehaviorValue",
+    "ordinal": 117,
+    "noname": false,
+    "mode": "forward"
+  },
+  {
+    "name": "SetAppCompatStringPointer",
+    "ordinal": 100,
+    "noname": false,
+    "mode": "forward"
+  },
+  {
+    "name": "[ordinal 99]",
+    "ordinal": 99,
+    "noname": true,
+    "mode": "forward"
+  }
+]

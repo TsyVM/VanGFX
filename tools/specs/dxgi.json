@@ -1,0 +1,122 @@
+[
+  {
+    "name": "ApplyCompatResolutionQuirking",
+    "ordinal": 1,
+    "noname": false,
+    "mode": "forward"
+  },
+  {
+    "name": "CompatString",
+    "ordinal": 2,
+    "noname": false,
+    "mode": "forward"
+  },
+  {
+    "name": "CompatValue",
+    "ordinal": 3,
+    "noname": false,
+    "mode": "forward"
+  },
+  {
+    "name": "CreateDXGIFactory",
+    "ordinal": 10,
+    "noname": false,
+    "mode": "forward"
+  },
+  {
+    "name": "CreateDXGIFactory1",
+    "ordinal": 11,
+    "noname": false,
+    "mode": "forward"
+  },
+  {
+    "name": "CreateDXGIFactory2",
+    "ordinal": 12,
+    "noname": false,
+    "mode": "forward"
+  },
+  {
+    "name": "DXGID3D10CreateDevice",
+    "ordinal": 13,
+    "noname": false,
+    "mode": "forward"
+  },
+  {
+    "name": "DXGID3D10CreateLayeredDevice",
+    "ordinal": 14,
+    "noname": false,
+    "mode": "forward"
+  },
+  {
+    "name": "DXGID3D10GetLayeredDeviceSize",
+    "ordinal": 15,
+    "noname": false,
+    "mode": "forward"
+  },
+  {
+    "name": "DXGID3D10RegisterLayers",
+    "ordinal": 16,
+    "noname": false,
+    "mode": "forward"
+  },
+  {
+    "name": "DXGIDeclareAdapterRemovalSupport",
+    "ordinal": 17,
+    "noname": false,
+    "mode": "forward"
+  },
+  {
+    "name": "DXGIDisableVBlankVirtualization",
+    "ordinal": 18,
+    "noname": false,
+    "mode": "forward"
+  },
+  {
+    "name": "DXGIDumpJournal",
+    "ordinal": 4,
+    "noname": false,
+    "mode": "forward"
+  },
+  {
+    "name": "DXGIGetDebugInterface1",
+    "ordinal": 19,
+    "noname": false,
+    "mode": "forward"
+  },
+  {
+    "name": "DXGIReportAdapterConfiguration",
+    "ordinal": 20,
+    "noname": false,
+    "mode": "forward"
+  },
+  {
+    "name": "PIXBeginCapture",
+    "ordinal": 5,
+    "noname": false,
+    "mode": "forward"
+  },
+  {
+    "name": "PIXEndCapture",
+    "ordinal": 6,
+    "noname": false,
+    "mode": "forward"
+  },
+  {
+    "name": "PIXGetCaptureState",
+    "ordinal": 7,
+    "noname": false,
+    "mode": "forward"
+  },
+  {
+    "name": "SetAppCompatStringPointer",
+    "ordinal": 8,
+    "noname": false,
+    "mode": "forward"
+  },
+  {
+    "name": "UpdateHMDEmulationStatus",
+    "ordinal": 9,
+    "noname": false,
+    "mode": "forward"
+  }
+]
